@@ -2,7 +2,7 @@ import React from "react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
 
-vi.mock("axios");
+vi.mock("ax");
 vi.mock("../context/ShopContext", () => ({
   useShop: () => ({
     cart: { items: [{ productId: "p1", variantId: null, name: "Widget", price: 9.99, quantity: 1, imageUrl: null }], couponCode: null, discount: 0 },
