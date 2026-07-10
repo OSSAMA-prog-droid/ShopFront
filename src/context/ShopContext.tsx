@@ -21,7 +21,7 @@ interface ShopState {
   setCartOpen: (open: boolean) => void;
 }
 
-const ShopContext = createContext<ShopState | null>(null);
+export const ShopContext = createContext<ShopState | null>(null);
 
 export function ShopProvider({ children }: { children: React.ReactNode }) {
   const [cart, setCart] = useState<Cart>(() => loadCart() ?? { items: [], couponCode: null, discount: 0 });

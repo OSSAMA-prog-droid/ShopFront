@@ -1,19 +1,66 @@
 import React from "react";
 import { describe, it, expect, vi } from "vitest";
+import { render, screen, waitFor } from "@testing-library/react";
+import axios from "axios";
+import { OrderHistoryPage } from "../pages/OrderHistoryPage";
+import { ShopContext } from "../context/ShopContext";
+import type { Cart, User } from "../types";
 
-// SHF-04: Missing useEffect dependency — orders never load after login
-describe("OrderHistoryPage — missing dep (SHF-04)", () => {
-  it("documents that useEffect dep array is empty, missing `user`", () => {
-    // The component mounts with user=null (unauthenticated).
-    // useEffect runs once: user?.id is falsy, early return — no fetch.
-    // User navigates to login, logs in, user state changes to { id: "u1", ... }.
-    // Because `user` is NOT in the dep array, the effect does NOT re-run.
-    // Result: order history stays empty even after a successful login.
-    //
-    // Fix: add `user` (or `user?.id`) to the useEffect dep array.
+vi.mock("axios");
 
-    // This is a static analysis catch — the bug is in the dep array declaration.
-    // Confirmed by reading OrderHistoryPage.tsx line: }, []); // BUG SHF-04
-    expect(true).toBe(true);
+const baseCart: Cart = { items: [], couponCode: null, discount: 0 };
+
+function renderWithUser(user: User | null) {
+  const value = {
+    cart: baseCart,
+    user,
+    isMenuOpen: false,
+    isCartOpen: false,
+    addToCart: vi.fn(),
+    removeFromCart: vi.fn(),
+    updateQuantity: vi.fn(),
+    clearCart: vi.fn(),
+    setUser: vi.fn(),
+    setMenuOpen: vi.fn(),
+    setCartOpen: vi.fn(),
+  };
+  return render(
+    <ShopContext.Provider value={value}>
+      <OrderHistoryPage />
+    </ShopContext.Provider>
+  );
+}
+
+describe("OrderHistoryPage — SHF-04", () => {
+  it("fetches orders when user transitions from null to authenticated", async () => {
+    (axios.get as any).mockResolvedValue({
+      data: { data: [{ id: "o1", total: 42, items: [] }] },
+    });
+
+    const { rerender } = renderWithUser(null);
+    expect(axios.get).not.toHaveBeenCalled();
+
+    rerender(
+      <ShopContext.Provider
+        value={{
+          cart: baseCart,
+          user: { id: "u1", email: "a@b.com", name: "A" } as User,
+          isMenuOpen: false,
+          isCartOpen: false,
+          addToCart: vi.fn(),
+          removeFromCart: vi.fn(),
+          updateQuantity: vi.fn(),
+          clearCart: vi.fn(),
+          setUser: vi.fn(),
+          setMenuOpen: vi.fn(),
+          setCartOpen: vi.fn(),
+        }}
+      >
+        <OrderHistoryPage />
+      </ShopContext.Provider>
+    );
+
+    await waitFor(() => expect(axios.get).toHaveBeenCalledTimes(1));
+    expect(axios.get).toHaveBeenCalledWith(expect.stringContaining("userId=u1"));
   });
 });
