@@ -5,12 +5,6 @@ import { useShop } from "../context/ShopContext";
 
 const API = import.meta.env.VITE_API_URL ?? "http://localhost:4000/api";
 
-// BUG SHF-04: The useEffect that fetches order history is missing `user` in its
-// dependency array. When the component mounts before the user has logged in,
-// `user` is null and no fetch runs. When the user logs in and `user` changes,
-// the effect does NOT re-run because it doesn't declare `user` as a dependency.
-// Result: the order history page always shows "No orders" for users who log in
-// after the page first mounts (e.g. navigating from the login page).
 export function OrderHistoryPage() {
   const { user } = useShop();
   const [orders, setOrders] = useState<Order[]>([]);
@@ -24,7 +18,7 @@ export function OrderHistoryPage() {
       .then((res) => setOrders(res.data.data))
       .catch(console.error)
       .finally(() => setLoading(false));
-  }, []); // BUG SHF-04: Missing `user` dependency — effect never re-runs when user logs in
+  }, [user?.id]);
 
   if (!user) {
     return (
