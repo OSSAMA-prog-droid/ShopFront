@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import { savePaymentDetails } from "../../utils/storage";
 
 interface Props {
   onPaymentReady: (data: { cardNumber: string; cardHolder: string; expiry: string; cvv: string }) => void;
@@ -10,14 +9,8 @@ export function PaymentForm({ onPaymentReady }: Props) {
   const [cardHolder, setCardHolder] = useState("");
   const [expiry, setExpiry] = useState("");
   const [cvv, setCvv] = useState("");
-  const [saveCard, setSaveCard] = useState(false);
 
   function handleBlur() {
-    if (saveCard && cardNumber && cardHolder && expiry && cvv) {
-      // BUG SHF-10: Delegates to savePaymentDetails which writes full card details
-      // including CVV to localStorage — accessible to any JS on this domain.
-      savePaymentDetails({ cardNumber, cardHolder, expiry, cvv, billingAddress: "" });
-    }
     if (cardNumber && cardHolder && expiry && cvv) {
       onPaymentReady({ cardNumber, cardHolder, expiry, cvv });
     }
@@ -75,14 +68,6 @@ export function PaymentForm({ onPaymentReady }: Props) {
           />
         </div>
       </div>
-      <label className="payment-form__save">
-        <input
-          type="checkbox"
-          checked={saveCard}
-          onChange={(e) => setSaveCard(e.target.checked)}
-        />
-        Save card for future purchases
-      </label>
     </div>
   );
 }
